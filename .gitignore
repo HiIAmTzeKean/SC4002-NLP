@@ -1,3 +1,5 @@
+source/glove.6B.50d.txt
+
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
