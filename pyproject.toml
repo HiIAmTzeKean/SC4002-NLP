@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "sc4002-nlp"
+version = "0.1.0"
+description = ""
+authors = ["HiIAmTzeKean <ngtzekean@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+datasets = "^3.0.1"
+ipykernel = "^6.29.5"
+nltk = "^3.9.1"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
