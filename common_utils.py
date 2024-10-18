@@ -4,6 +4,8 @@ import datasets
 from datasets import Dataset
 import nltk
 
+import numpy as np
+
 UNK_TOKEN = "<UNK>"
 EMBEDDING_DIM = 100 # glove embedding are usually 50,100,200,300
 SAVE_DIR = './result/'
@@ -33,3 +35,34 @@ def tokenize(dataset: Dataset, save=False) -> set:
 
         print(f"Vocabulary saved to {VOCAB_PATH}")
     return vocab
+
+class EmbeddingMatrix():
+    def __init__(self) -> None:
+        self.d = 0 
+        self.v = 0
+        self.embedding_matrix:np.ndarray
+        self.word2idx:dict
+    @classmethod
+    def load() -> "EmbeddingMatrix":
+        # load vectors from file
+        embedding_matrix:np.ndarray = np.load(EMBEDDING_MATRIX_PATH)
+        # set attributes
+        em = EmbeddingMatrix()
+        em.embedding_matrix = embedding_matrix
+        
+        with open(WORD2IDX_PATH, 'r', encoding='utf-8') as f:
+            word2idx:dict = json.load(f)
+            em.word2idx = word2idx
+        em.v, em.d = embedding_matrix.shape
+        return em
+    @property
+    def dimension(self) -> int:
+        return self.d
+    @property
+    def vocab_size(self) -> int:
+        return self.v
+    @property
+    def vocab(self) -> set[str]:
+        return set(self.word2idx.keys())
+    def __getitem__(self, word:str) -> np.ndarray:
+        return self.embedding_matrix[self.word2idx[word]]

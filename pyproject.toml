@@ -12,6 +12,7 @@ ipykernel = "^6.29.5"
 nltk = "^3.9.1"
 torch = "^2.4.1"
 iprogress = "^0.4"
+gensim = "^4.3.3"
 
 
 [tool.poetry.group.dev.dependencies]
