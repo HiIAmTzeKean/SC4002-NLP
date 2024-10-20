@@ -14,6 +14,7 @@ torch = "^2.4.1"
 iprogress = "^0.4"
 torchviz = "^0.0.2"
 
+gensim = "^4.3.3"
 
 
 [tool.poetry.group.dev.dependencies]
