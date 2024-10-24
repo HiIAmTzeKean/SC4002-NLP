@@ -1,7 +1,7 @@
 import json
 import os
 import datasets
-from datasets import Dataset
+from datasets import load_dataset, Dataset
 import nltk
 
 import numpy as np
@@ -63,11 +63,11 @@ class EmbeddingMatrix():
         self.embedding_matrix:np.ndarray
         self.word2idx:dict
     @classmethod
-    def load() -> "EmbeddingMatrix":
+    def load(cls) -> "EmbeddingMatrix":
         # load vectors from file
         embedding_matrix:np.ndarray = np.load(EMBEDDING_MATRIX_PATH)
         # set attributes
-        em = EmbeddingMatrix()
+        em = cls()
         em.embedding_matrix = embedding_matrix
         
         with open(WORD2IDX_PATH, 'r', encoding='utf-8') as f:
