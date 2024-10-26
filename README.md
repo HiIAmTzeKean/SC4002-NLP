@@ -12,4 +12,4 @@ poetry install
 WY To Do:
 1. Try length based curriculum for variable-length input
 2. resnet weight forward architecture
-3. adjust the input embedding size
+3. adjust the input embedding matrix size (the tzekean unknown words problem)
