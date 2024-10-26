@@ -8,3 +8,7 @@
 pip install poetry
 poetry install
 ```
+
+WY To Do:
+1. Try length based curriculum for variable-length input
+2. 
