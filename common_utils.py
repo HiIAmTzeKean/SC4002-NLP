@@ -1,9 +1,11 @@
 import json
 import os
-import datasets
-from datasets import Dataset, load_dataset
+# import datasets
+from datasets import load_dataset
+from datasets import Dataset
 import nltk
-
+import torch 
+import random
 import numpy as np
 
 UNK_TOKEN = "<UNK>"
@@ -35,6 +37,17 @@ def tokenize(dataset: Dataset, save=False) -> set:
 
         print(f"Vocabulary saved to {VOCAB_PATH}")
     return vocab
+
+def set_seed(seed = 0):
+    '''
+    set random seed
+    '''
+    random.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+
 
 def load_glove_embeddings() -> dict:
     """Load GloVe embeddings
