@@ -36,6 +36,26 @@ def tokenize(dataset: Dataset, save=False) -> set:
         print(f"Vocabulary saved to {VOCAB_PATH}")
     return vocab
 
+def load_glove_embeddings() -> dict:
+    """Load GloVe embeddings
+
+    :return: GloVe embeddings
+    :rtype: Dict
+    """
+    print("Loading GloVe embeddings...")
+    glove_dict = {}
+    word_embedding_glove = load_dataset("SLU-CSCI4750/glove.6B.100d.txt")
+    word_embedding_glove = word_embedding_glove['train']
+    
+    for example in word_embedding_glove:
+        split_line = example["text"].strip().split()
+        word = split_line[0]
+        vector = np.array(split_line[1:], dtype='float32')
+        glove_dict[word] = vector
+
+    print(f"Total GloVe words loaded: {len(glove_dict)}")
+    return glove_dict
+
 class EmbeddingMatrix():
     def __init__(self) -> None:
         self.d = 0 
