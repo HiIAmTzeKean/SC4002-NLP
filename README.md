@@ -9,16 +9,20 @@ contain the code solutions for the project and a write up detailing the project.
 - Ng Woon Yee
 - Yap Shen Hwei
 - Lim Boon Hien
+- Phee Kian Ann
 - Lim Ke En
 
 ## Instructions
+
+To run the code in the notebooks, you will need to install the dependencies. The
+dependencies are managed using Poetry. To install the dependencies, run the
+following commands:
 
 ```shell
 pip install poetry
 poetry install
 ```
 
-WY To Do:
-1. Try length based curriculum for variable-length input
-2. resnet weight forward architecture
-3. adjust the input embedding matrix size (the tzekean unknown words problem)
+This repository contains 3 notebooks that solves each part of the question.
+There is an additional file `common_utils.py` that contains common functions
+that are used within the notebooks.
