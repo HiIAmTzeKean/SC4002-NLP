@@ -6,6 +6,8 @@ import nltk
 import torch 
 import random
 import numpy as np
+from torch.nn.utils.rnn import pad_sequence
+from torch.utils import data
 
 UNK_TOKEN = "<UNK>"
 EMBEDDING_DIM = 100 # glove embedding are usually 50,100,200,300
@@ -98,12 +100,7 @@ class EmbeddingMatrix():
         return set(self.word2idx.keys())
     def __getitem__(self, word:str) -> np.ndarray:
         return self.embedding_matrix[self.word2idx[word]]
-    
-import nltk
-import torch
-from torch.nn.utils.rnn import pad_sequence
-from torch.utils import data
-from datasets import load_dataset
+
 
 class CustomDatasetPreparer:
     def __init__(self, dataset_name, word2idx, unk_token, max_len=512, batch_size=50):
