@@ -1,5 +1,11 @@
 source/glove.6B.50d.txt
 
+report/report.aux
+report/report.fls
+report/report.fdb_latexmk
+report/report.log
+report/report.synctex.gz
+
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
