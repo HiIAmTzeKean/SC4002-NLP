@@ -178,3 +178,5 @@ cython_debug/
 result/**
 report/*.gz
 report/*.pdf
+fasttext_model.model
+fasttext_model.**

@@ -15,6 +15,7 @@ iprogress = "^0.4"
 torchviz = "^0.0.2"
 
 gensim = "^4.3.3"
+ipywidgets = "^8.1.5"
 
 
 [tool.poetry.group.dev.dependencies]
