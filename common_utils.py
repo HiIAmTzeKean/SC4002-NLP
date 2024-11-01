@@ -154,42 +154,40 @@ class CustomDatasetPreparer:
         return tokenized, lengths
 
     def prepare_dataset(self, dataset_split, shuffle=False):
-        """
-        Prepare the dataset for a specific split (train, validation, test).
-        
-        :param dataset_split: The split of the dataset to process.
-        :param shuffle: Whether to shuffle the dataset (default: False).
-        :return: DataLoader for the given dataset split.
-        """
         set_tokenized, lengths = self.tokenize(dataset_split['text'])
-
-        set_tokenized = pad_sequence(set_tokenized, batch_first=True)
-
+        set_labels = torch.tensor(dataset_split['label'], dtype=torch.long)
         lengths = torch.tensor(lengths, dtype=torch.long)
 
-        set_labels = torch.tensor(dataset_split['label'], dtype=torch.long)
-
         extra_features = torch.zeros((len(set_labels), 0), dtype=torch.float)
-
+        
         sorted_indices = torch.argsort(lengths, descending=True)
-        set_tokenized_sorted = set_tokenized[sorted_indices]
+        set_tokenized_sorted = [set_tokenized[i] for i in sorted_indices]
         set_labels_sorted = set_labels[sorted_indices]
-        extra_features_sorted = extra_features[sorted_indices]
         lengths_sorted = lengths[sorted_indices]
+        extra_features_sorted = extra_features[sorted_indices]
 
-        set_data = data.TensorDataset(set_tokenized_sorted, extra_features_sorted, lengths_sorted, set_labels_sorted)
+        set_data = list(zip(set_tokenized_sorted, extra_features_sorted, lengths_sorted, set_labels_sorted))
 
-        return data.DataLoader(set_data, batch_size=self.batch_size, shuffle=shuffle)
+        return data.DataLoader(
+            set_data, batch_size=self.batch_size, shuffle=shuffle, collate_fn=self.collate_fn
+        )
+
+    def collate_fn(self, batch):
+        tokenized, extra_features, lengths, labels = zip(*batch)
+        # Ensure that sequences are padded to at least the size of the largest kernel
+        max_kernel_size = 6 # Max Kernel Size for CNN
+        max_seq_len = max(max(lengths), max_kernel_size)
+        padded_tokenized = pad_sequence(tokenized, batch_first=True, padding_value=0)
+        # If padding is insufficient, pad to max_seq_len
+        if padded_tokenized.size(1) < max_seq_len:
+            padding_needed = max_seq_len - padded_tokenized.size(1)
+            padding = torch.zeros(padded_tokenized.size(0), padding_needed, dtype=torch.long)
+            padded_tokenized = torch.cat([padded_tokenized, padding], dim=1)
+        return padded_tokenized, torch.stack(extra_features), torch.tensor(lengths), torch.tensor(labels)
 
     def get_dataloaders(self):
-        """
-        Prepare and return DataLoaders for the train, validation, and test sets.
-        
-        :return: A tuple containing train_loader, validation_loader, and test_loader.
-        """
         train_loader = self.prepare_dataset(self.dataset['train'], shuffle=False)
         val_loader = self.prepare_dataset(self.dataset['validation'], shuffle=False)
         test_loader = self.prepare_dataset(self.dataset['test'], shuffle=False)
         return train_loader, val_loader, test_loader
-
 
