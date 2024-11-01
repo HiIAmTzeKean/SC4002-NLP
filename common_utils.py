@@ -91,12 +91,29 @@ class EmbeddingMatrix():
         return em
     @property
     def dimension(self) -> int:
+        """Dimension of the embedding matrix
+        
+        :return: The dimension of the embedding matrix
+        :rtype: int
+        """
         return self.d
     @property
     def vocab_size(self) -> int:
+        """Vocabulary size of the embedding matrix
+
+        :return: The vocabulary size of the embedding matrix
+        :rtype: int
+        """
         return self.v
     @property
     def vocab(self) -> set[str]:
+        """Vocabulary of the embedding matrix
+        
+        Set of words in the embedding matrix
+
+        :return: The vocabulary of the embedding matrix
+        :rtype: set[str]
+        """
         return set(self.word2idx.keys())
     def __getitem__(self, word:str) -> np.ndarray:
         return self.embedding_matrix[self.word2idx[word]]
