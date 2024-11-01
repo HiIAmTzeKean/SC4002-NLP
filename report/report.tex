@@ -1,6 +1,8 @@
 \documentclass{article}
 \usepackage{geometry}
 \usepackage{parskip}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
 
 \geometry{
   a4paper,
@@ -19,9 +21,9 @@
   Lim Boon Hien\\
   \texttt{U1234567J} \and
   Phee Kian Ann\\
-  \texttt{U1234567J}
-  Kim Ke En\\
-  \texttt{U1234567J}
+  \texttt{U1234567J} \and
+  Lim Ke En\\
+  \texttt{U2122069L}
 }
 \date{\today}
 
@@ -117,9 +119,44 @@ else:
 
 \subsubsection*{Answer to question 2}
 
-\subsubsection*{Discussion for 3}
+\subsubsection*{Discussion for 3.1}
 
-\subsubsection*{Answer to question 3}
+\subsubsection*{Answer to question 3.1}
+
+\subsection*{Discussion for 3.2 - BiGru Model}
+BiGRU model stands for Bidirectional Gated Reccurent Unit, which is a type of recurrent neural network (RNN). Similarly to LSTM, GRU is designed to model sequential data by allowing information to be selectively remembered or forgotten over time. However, in GRU, the memory cell state is replaced with a "candidate activation vector", which is updated using two gates: the reset gate and update gate. The reset gate determines how much of the previous hidden state to forget while the update gate determines how much of the candidate activation vector to incorporate into the new hidden state. 
+
+Therefore, the GRU consists of two gates:
+\begin{itemize}
+    \item Update gate z that selects whether the hidden state is to be updated with a new hidden state. 
+    \item Reset gate that decides whether previous hidden state is ignored. 
+\end{itemize}
+
+In this implementation, Spatial dropout is used. The spatial dropout will zeroes out the entire 1D feature map from the embedding feature vector of each word, helping in regularisation. 
+
+After the GRU layer, we will concatenate both, the average pooling and max pooling of the hidden representation and the last hidden state of GRU in order to prevent our model from forgetting informations. 
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{BiGRU.png}
+    \caption{Accuracy and Loss Data}
+    \label{fig:enter-label}
+\end{figure}
+
+\subsection*{Answer to question 3.2}
+Accuracy scores of BiLSTM and BiGRU model: 
+\begin{center}
+\begin{tabular}{ | c | c | }
+\hline
+ Model & Test Accuracy \\
+\hline
+ BiLSTM & [bilstm accuracy] \\
+\hline
+ BiGRU & 0.7992 \\
+\hline
+\end{tabular}
+\end{center}
+
+Compare the accuracy between BiGRU and BiLSTM
 
 \subsubsection*{Discussion for 4}
 
