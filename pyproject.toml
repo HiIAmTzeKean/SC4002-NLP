@@ -16,6 +16,8 @@ torchviz = "^0.0.2"
 
 gensim = "^4.3.3"
 ipywidgets = "^8.1.5"
+optuna = "^4.0.0"
+matplotlib = "^3.9.2"
 
 
 [tool.poetry.group.dev.dependencies]
