@@ -74,6 +74,7 @@ class EmbeddingMatrix():
     def __init__(self) -> None:
         self.d = 0 
         self.v = 0
+        self.pad_idx:int
         self.embedding_matrix:np.ndarray
         self.word2idx:dict
     @classmethod
@@ -89,6 +90,18 @@ class EmbeddingMatrix():
             em.word2idx = word2idx
         em.v, em.d = embedding_matrix.shape
         return em
+    @property
+    def to_tensor(self) -> torch.Tensor:
+        return torch.tensor(self.embedding_matrix)
+    def add_padding(self) -> None:
+        if "<PAD>" in self.word2idx:
+            return
+        padding = np.zeros((1, self.d), dtype='float32')
+        self.embedding_matrix = np.vstack((self.embedding_matrix, padding))
+        
+        self.v += 1
+        self.pad_idx = self.v - 1
+        self.word2idx["<PAD>"] = self.pad_idx 
     @property
     def dimension(self) -> int:
         """Dimension of the embedding matrix
@@ -117,6 +130,9 @@ class EmbeddingMatrix():
         return set(self.word2idx.keys())
     def __getitem__(self, word:str) -> np.ndarray:
         return self.embedding_matrix[self.word2idx[word]]
+    def get_idx(self, word:str) -> int:
+        # if word not in vocab, return None
+        return self.word2idx.get(word, None)
 
 
 class CustomDatasetPreparer:

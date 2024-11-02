@@ -113,9 +113,24 @@ else:
 
 \subsubsection*{Discussion for 1}
 
+As stated by the task, we unfreeze the word embeddings of the RNN model, allowing
+for updates as the model trains. This is done by setting the trainable parameter
+of the embedding layer to True.
+
 \subsubsection*{Answer to question 1}
 
+% attach image of accuracy and loss graph
+
 \subsubsection*{Discussion for 2}
+
+We apply the mitigation of OOV words by first using the <UNK> token to represent
+all OOV words. Tokens from the train data that are in the GloVe dictionary will
+have the embedding taken, and those that are not will be removed from the vocabulary
+allowing it to be implicitly represented by the <UNK> token. The <UNK> token 
+will have a random embedding generated for it.
+
+Next, for the embedding layer, we handle the OOV words by setting the embedding
+to the <UNK> token embedding.
 
 \subsubsection*{Answer to question 2}
 
