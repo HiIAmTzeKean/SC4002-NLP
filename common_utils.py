@@ -92,7 +92,7 @@ class EmbeddingMatrix():
         return em
     @property
     def to_tensor(self) -> torch.Tensor:
-        return torch.tensor(self.embedding_matrix)
+        return torch.tensor(self.embedding_matrix, dtype=torch.float64)
     def add_padding(self) -> None:
         if "<PAD>" in self.word2idx:
             return
