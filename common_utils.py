@@ -79,7 +79,7 @@ class EmbeddingMatrix():
         self.embedding_matrix:np.ndarray
         self.word2idx:dict
     @classmethod
-    def load() -> "EmbeddingMatrix":
+    def load(cls) -> "EmbeddingMatrix":
         # load vectors from file
         embedding_matrix:np.ndarray = np.load(EMBEDDING_MATRIX_PATH)
         # set attributes
