@@ -26,3 +26,8 @@ poetry install
 This repository contains 3 notebooks that solves each part of the question.
 There is an additional file `common_utils.py` that contains common functions
 that are used within the notebooks.
+
+To Do WY:
+1. Do HyperParameter Training for CNN
+2. ResNet Archi
+3. Length Based Curriculum
