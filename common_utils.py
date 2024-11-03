@@ -453,3 +453,23 @@ def train_model(train_loader, val_loader, model, loss_fn, optimizer, scheduler, 
             print(f"epoch {epoch+1}, train_loss {train_loss:>7f} train_acc {train_acc:>4f}, val_loss {val_loss:>7f}, val_acc {val_acc:>4f}")
 
     return train_loss_, train_acc_, val_loss_, val_acc_
+class EarlyStopper:
+    """This early stopper will stop the training if the validation loss does not decrease after a certain number of epochs."""
+    def __init__(self, patience=3, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.min_validation_loss = np.inf
+
+    def early_stop(self, validation_loss):
+        if validation_loss < self.min_validation_loss:
+            self.min_validation_loss = validation_loss
+            self.counter = 0
+        elif validation_loss > (self.min_validation_loss + self.min_delta):
+            self.counter += 1
+            if self.counter >= self.patience:
+                return True
+        return False
+
+    def get_last_min_validation_loss(self):
+        return self.min_validation_loss
