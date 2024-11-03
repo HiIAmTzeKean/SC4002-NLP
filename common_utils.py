@@ -271,3 +271,23 @@ class CustomDatasetPreparer_SameLength:
         test_loader = self.prepare_dataset(self.dataset['test'], shuffle=False)
         return train_loader, val_loader, test_loader
 
+class EarlyStopper:
+    """This early stopper will stop the training if the validation loss does not decrease after a certain number of epochs."""
+    def __init__(self, patience=3, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.min_validation_loss = np.inf
+
+    def early_stop(self, validation_loss):
+        if validation_loss < self.min_validation_loss:
+            self.min_validation_loss = validation_loss
+            self.counter = 0
+        elif validation_loss > (self.min_validation_loss + self.min_delta):
+            self.counter += 1
+            if self.counter >= self.patience:
+                return True
+        return False
+
+    def get_last_min_validation_loss(self):
+        return self.min_validation_loss
