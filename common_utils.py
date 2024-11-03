@@ -78,6 +78,7 @@ class EmbeddingMatrix():
         self.pad_idx:int
         self.embedding_matrix:np.ndarray
         self.word2idx:dict
+
     @classmethod
     def load(cls) -> "EmbeddingMatrix":
         # load vectors from file
@@ -91,24 +92,28 @@ class EmbeddingMatrix():
             em.word2idx = word2idx
         em.v, em.d = embedding_matrix.shape
         return em
+    
     @property
     def to_tensor(self) -> torch.Tensor:
         return torch.tensor(self.embedding_matrix)
+    
     def add_padding(self) -> None:
         if "<PAD>" in self.word2idx:
             return
         padding = np.zeros((1, self.d), dtype='float32')
         self.embedding_matrix = np.vstack((self.embedding_matrix, padding))
-        
         self.v += 1
         self.pad_idx = self.v - 1
         self.word2idx["<PAD>"] = self.pad_idx 
+
     @property
     def dimension(self) -> int:
         return self.d
+    
     @property
     def vocab_size(self) -> int:
         return self.v
+    
     @property
     def vocab(self) -> set[str]:
         return set(self.word2idx.keys())
