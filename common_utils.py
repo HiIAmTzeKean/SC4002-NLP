@@ -15,6 +15,7 @@ UNK_TOKEN = "<UNK>"
 PAD_TOKEN = "<PAD>"
 HIDDEN_SIZE = 128
 NUM_EPOCHS = 100
+BATCH_SIZE = 50
 LEARNING_RATE = 0.01
 EMBEDDING_DIM = 100  # glove embedding are usually 50,100,200,300
 SAVE_DIR = "./result/"
@@ -243,7 +244,7 @@ class EmbeddingsDataset(Dataset):
 
 
 class CustomDatasetPreparer:
-    def __init__(self, dataset_name, batch_size=50):
+    def __init__(self, dataset_name, batch_size=BATCH_SIZE):
         """
         Initialize the dataset preparer.
 
