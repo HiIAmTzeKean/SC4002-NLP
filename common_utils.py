@@ -150,6 +150,7 @@ class EmbeddingMatrix:
         :rtype: int
         """
         return self.d
+
     @property
     def vocab_size(self) -> int:
         """Vocabulary size of the embedding matrix
@@ -158,6 +159,7 @@ class EmbeddingMatrix:
         :rtype: int
         """
         return self.v
+
     @property
     def vocab(self) -> set[str]:
         """Vocabulary of the embedding matrix
