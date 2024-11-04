@@ -7,7 +7,7 @@ import nltk
 import numpy as np
 import torch
 from datasets import Dataset, load_dataset
-from torch.nn.utils.rnn import pad_sequence
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 from torch.utils import data
 from torch.utils.data import DataLoader, Dataset
 
@@ -15,6 +15,7 @@ UNK_TOKEN = "<UNK>"
 PAD_TOKEN = "<PAD>"
 HIDDEN_SIZE = 128
 NUM_EPOCHS = 100
+BATCH_SIZE = 50
 LEARNING_RATE = 0.01
 EMBEDDING_DIM = 100  # glove embedding are usually 50,100,200,300
 SAVE_DIR = "./result/"
@@ -120,7 +121,7 @@ class EmbeddingMatrix:
 
     @property
     def to_tensor(self) -> torch.Tensor:
-        return torch.tensor(self.embedding_matrix, dtype=torch.float64)
+        return torch.tensor(self.embedding_matrix, dtype=torch.float)
 
     def add_padding(self) -> None:
         if "<PAD>" in self.word2idx:
@@ -243,7 +244,7 @@ class EmbeddingsDataset(Dataset):
 
 
 class CustomDatasetPreparer:
-    def __init__(self, dataset_name, batch_size=50):
+    def __init__(self, dataset_name, batch_size=BATCH_SIZE):
         """
         Initialize the dataset preparer.
 
@@ -256,35 +257,6 @@ class CustomDatasetPreparer:
         self.word_embeddings = EmbeddingMatrix.load()
         self.word_embeddings.add_padding()
         self.word_embeddings.add_unk_token()
-
-    def prepare_dataset(self, dataset_split, shuffle=False):
-        set_tokenized, lengths = self.tokenize(dataset_split["text"])
-        set_labels = torch.tensor(dataset_split["label"], dtype=torch.long)
-        lengths = torch.tensor(lengths, dtype=torch.long)
-
-        extra_features = torch.zeros((len(set_labels), 0), dtype=torch.float)
-
-        sorted_indices = torch.argsort(lengths, descending=True)
-        set_tokenized_sorted = [set_tokenized[i] for i in sorted_indices]
-        set_labels_sorted = set_labels[sorted_indices]
-        lengths_sorted = lengths[sorted_indices]
-        extra_features_sorted = extra_features[sorted_indices]
-
-        set_data = list(
-            zip(
-                set_tokenized_sorted,
-                extra_features_sorted,
-                lengths_sorted,
-                set_labels_sorted,
-            )
-        )
-
-        return data.DataLoader(
-            set_data,
-            batch_size=self.batch_size,
-            shuffle=shuffle,
-            collate_fn=self.collate_fn,
-        )
 
     def load_dataset(self):
         # load dataset from huggingface first
@@ -320,17 +292,17 @@ class CustomDatasetPreparer:
 
         def pad_collate(batch, pad_value):
             (xx, yy) = zip(*batch)
+            # get the lengths of each sequence
+            lengths = [len(x) for x in xx]
+            # convert lengths to a tensor
+            lengths = torch.tensor(lengths, dtype=torch.long)
+
             # convert xx to a tensor
             xx = [torch.tensor(x, dtype=torch.int64) for x in xx]
             xx_pad = pad_sequence(xx, batch_first=True, padding_value=pad_value)
 
             labels = torch.tensor(yy, dtype=torch.long)
             extra_features = torch.zeros((len(labels), 0), dtype=torch.float)
-
-            # get the lengths of each sequence
-            lengths = [len(x) for x in xx]
-            # convert lengths to a tensor
-            lengths = torch.tensor(lengths, dtype=torch.long)
 
             return xx_pad, extra_features, lengths, labels
 
