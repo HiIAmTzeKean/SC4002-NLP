@@ -8,8 +8,10 @@ import numpy as np
 import torch
 from datasets import Dataset, load_dataset
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
+from torch.nn.utils import clip_grad_norm_
 from torch.utils import data
 from torch.utils.data import DataLoader, Dataset
+import matplotlib.pyplot as plt
 
 UNK_TOKEN = "<UNK>"
 PAD_TOKEN = "<PAD>"
@@ -109,6 +111,14 @@ class EmbeddingMatrix:
             
         em.v, em.d = embedding_matrix.shape
         return em
+    
+    def load_manual(self, word2idx: dict, idx2word: dict, embedding_matrix: np.ndarray) -> None:
+        self.word2idx = word2idx
+        self.idx2word = idx2word
+        self.embedding_matrix = embedding_matrix
+        self.v, self.d = embedding_matrix.shape
+        self.pad_idx = self.word2idx["<PAD>"]
+        self.unk_idx = self.word2idx[self.unk_token]
 
     def save(self) -> None:
         np.save(EMBEDDING_MATRIX_PATH, self.embedding_matrix)
@@ -236,7 +246,7 @@ class EmbeddingsDataset(Dataset):
             tokens = [
                 self.word_embeddings.get_idx(token)
                 for token in tokens
-                if self.word_embeddings.get_idx(token) is not None
+                if self.word_embeddings.get_idx(token) is not self.word_embeddings.unk_idx
             ]
         else:
             tokens = [self.word_embeddings.get_idx(token) for token in tokens]
@@ -244,7 +254,7 @@ class EmbeddingsDataset(Dataset):
 
 
 class CustomDatasetPreparer:
-    def __init__(self, dataset_name, batch_size=BATCH_SIZE):
+    def __init__(self, dataset_name, batch_size=BATCH_SIZE, manual_embeddings:EmbeddingMatrix=None):
         """
         Initialize the dataset preparer.
 
@@ -254,11 +264,14 @@ class CustomDatasetPreparer:
         self.dataset = load_dataset(dataset_name)
         self.batch_size = batch_size
         # word embeddings
-        self.word_embeddings = EmbeddingMatrix.load()
-        self.word_embeddings.add_padding()
-        self.word_embeddings.add_unk_token()
+        if manual_embeddings:
+            self.word_embeddings = manual_embeddings
+        else:
+            self.word_embeddings = EmbeddingMatrix.load()
+            self.word_embeddings.add_padding()
+            self.word_embeddings.add_unk_token()
 
-    def load_dataset(self):
+    def load_dataset(self,ignore_unknown=False):
         # load dataset from huggingface first
         dataset = load_dataset("rotten_tomatoes")
         train_dataset = dataset["train"]
@@ -269,25 +282,25 @@ class CustomDatasetPreparer:
             train_dataset["text"],
             train_dataset["label"],
             self.word_embeddings,
-            ignore_unknown=False,
+            ignore_unknown=ignore_unknown,
         )
         validation_dataset_ed = EmbeddingsDataset(
             validation_dataset["text"],
             validation_dataset["label"],
             self.word_embeddings,
-            ignore_unknown=False,
+            ignore_unknown=ignore_unknown,
         )
         test_dataset_ed = EmbeddingsDataset(
             test_dataset["text"],
             test_dataset["label"],
             self.word_embeddings,
-            ignore_unknown=False,
+            ignore_unknown=ignore_unknown,
         )
         return train_dataset_ed, validation_dataset_ed, test_dataset_ed
 
-    def get_dataloaders(self):
+    def get_dataloaders(self, ignore_unknown=False):
         train_dataset_ed, validation_dataset_ed, test_dataset_ed = (
-            self.load_dataset()
+            self.load_dataset(ignore_unknown)
         )
 
         def pad_collate(batch, pad_value):
@@ -328,3 +341,115 @@ class CustomDatasetPreparer:
         )
 
         return train_dataloader, validation_dataloader, test_dataloader
+
+
+def plot_loss_accuracy(train_loss_, train_acc_, val_loss_, val_acc_):
+    fig = plt.figure(figsize = (20, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(train_acc_, label='Train Acc')
+    plt.plot(val_acc_, label='Validation Acc')
+    plt.title("Accuracy")
+    plt.legend()
+    plt.grid()
+        
+    plt.subplot(1, 2, 2)
+    plt.plot(train_loss_, label='Train loss')
+    plt.plot(val_loss_, label='Validation loss')
+    plt.title("Loss")
+    plt.legend()
+    plt.grid()
+
+    plt.show()
+    
+# function to predict accuracy
+def acc(pred,label):
+    pred = torch.round(pred.squeeze())
+    return torch.sum(pred == label).item()
+
+# training
+def train_loop(train_loader, model, loss_fn, optimizer, scheduler, max_norm = 5, device='cpu'):
+    train_loss = []
+    train_acc = 0.0
+    model.train()
+    for X, extra_features, lengths, Y in train_loader:
+        X, Y = X.to(device), Y.to(device)   
+
+        optimizer.zero_grad()
+        output = model(X, lengths)
+        
+        # calculate the loss and perform backprop
+        loss = loss_fn(output.squeeze(), Y.float())
+        train_loss.append(loss.item())
+        loss.backward()
+        
+        # calculating accuracy
+        accuracy = acc(output,Y)
+        train_acc += accuracy
+        
+        #`clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
+        clip_grad_norm_(model.parameters(), max_norm)
+        optimizer.step()
+        
+    scheduler.step()
+    epoch_train_loss = np.mean(train_loss)
+    epoch_train_acc = train_acc/len(train_loader.dataset)
+
+    return epoch_train_loss, epoch_train_acc
+
+
+def test_loop(test_loader, model, loss_fn, optimizer, device='cpu'):
+    test_loss = []
+    test_acc = 0.0
+    model.eval()
+    with torch.no_grad():
+        for X,extra_features, lengths, Y in test_loader:
+            X, Y = X.to(device), Y.to(device)   
+
+            optimizer.zero_grad()
+            output = model(X, lengths)
+            
+            # calculate the loss and perform backprop
+            loss = loss_fn(output.squeeze(), Y.float())
+
+            test_loss.append(loss.item())
+            # calculating accuracy
+            accuracy = acc(output,Y)
+            test_acc += accuracy
+
+    epoch_test_loss = np.mean(test_loss)
+    epoch_test_acc = test_acc/len(test_loader.dataset)
+
+    return epoch_test_loss, epoch_test_acc
+
+def train_model(train_loader, val_loader, model, loss_fn, optimizer, scheduler, epochs, es_patience, device='cpu'):
+    best_val_loss = np.inf
+    best_acc = 0
+    train_loss_, train_acc_, val_loss_, val_acc_ = [], [], [], []
+    from tqdm import tqdm
+    # start training
+    for epoch in tqdm(range(epochs)):
+        train_loss, train_acc = train_loop(train_loader, model, loss_fn, optimizer, scheduler)
+        val_loss, val_acc = test_loop(val_loader, model, loss_fn, optimizer)
+
+        train_loss_.append(train_loss), train_acc_.append(train_acc)
+        val_loss_.append(val_loss), val_acc_.append(val_acc)
+
+        if val_acc > best_acc:
+            best_acc = val_acc
+        # early stopping
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            epochs_without_improvement = 0
+            # best_model = model.state_dict()
+        else:
+            epochs_without_improvement += 1
+            if epochs_without_improvement >= es_patience:
+                print(f'early stopping after {epoch+1} epochs')
+                print(f'best val loss: {best_val_loss}')
+                print(f'best accuracy on val set: {best_acc}')
+                break
+
+        if epoch % 10 == 0:
+            print(f"epoch {epoch+1}, train_loss {train_loss:>7f} train_acc {train_acc:>4f}, val_loss {val_loss:>7f}, val_acc {val_acc:>4f}")
+
+    return train_loss_, train_acc_, val_loss_, val_acc_
