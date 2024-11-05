@@ -111,6 +111,14 @@ class EmbeddingMatrix:
             
         em.v, em.d = embedding_matrix.shape
         return em
+    
+    def load_manual(self, word2idx: dict, idx2word: dict, embedding_matrix: np.ndarray) -> None:
+        self.word2idx = word2idx
+        self.idx2word = idx2word
+        self.embedding_matrix = embedding_matrix
+        self.v, self.d = embedding_matrix.shape
+        self.pad_idx = self.word2idx["<PAD>"]
+        self.unk_idx = self.word2idx[self.unk_token]
 
     def save(self) -> None:
         np.save(EMBEDDING_MATRIX_PATH, self.embedding_matrix)
@@ -238,7 +246,7 @@ class EmbeddingsDataset(Dataset):
             tokens = [
                 self.word_embeddings.get_idx(token)
                 for token in tokens
-                if self.word_embeddings.get_idx(token) is not None
+                if self.word_embeddings.get_idx(token) is not self.word_embeddings.unk_idx
             ]
         else:
             tokens = [self.word_embeddings.get_idx(token) for token in tokens]
@@ -246,7 +254,7 @@ class EmbeddingsDataset(Dataset):
 
 
 class CustomDatasetPreparer:
-    def __init__(self, dataset_name, batch_size=BATCH_SIZE):
+    def __init__(self, dataset_name, batch_size=BATCH_SIZE, manual_embeddings:EmbeddingMatrix=None):
         """
         Initialize the dataset preparer.
 
@@ -256,9 +264,12 @@ class CustomDatasetPreparer:
         self.dataset = load_dataset(dataset_name)
         self.batch_size = batch_size
         # word embeddings
-        self.word_embeddings = EmbeddingMatrix.load()
-        self.word_embeddings.add_padding()
-        self.word_embeddings.add_unk_token()
+        if manual_embeddings:
+            self.word_embeddings = manual_embeddings
+        else:
+            self.word_embeddings = EmbeddingMatrix.load()
+            self.word_embeddings.add_padding()
+            self.word_embeddings.add_unk_token()
 
     def load_dataset(self,ignore_unknown=False):
         # load dataset from huggingface first
