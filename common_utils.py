@@ -117,8 +117,12 @@ class EmbeddingMatrix:
         self.idx2word = idx2word
         self.embedding_matrix = embedding_matrix
         self.v, self.d = embedding_matrix.shape
-        self.pad_idx = self.word2idx["<PAD>"]
-        self.unk_idx = self.word2idx[self.unk_token]
+        try:
+            self.pad_idx = self.word2idx["<PAD>"]
+            self.unk_idx = self.word2idx[self.unk_token]
+        except KeyError:
+            self.add_padding()
+            self.add_unk_token()
 
     def save(self) -> None:
         np.save(EMBEDDING_MATRIX_PATH, self.embedding_matrix)
@@ -254,7 +258,7 @@ class EmbeddingsDataset(Dataset):
 
 
 class CustomDatasetPreparer:
-    def __init__(self, dataset_name, batch_size=BATCH_SIZE, manual_embeddings:EmbeddingMatrix=None):
+    def __init__(self, dataset_name, batch_size=BATCH_SIZE, manual_embeddings:EmbeddingMatrix=None, train_dataset:Dataset=None):
         """
         Initialize the dataset preparer.
 
@@ -262,6 +266,7 @@ class CustomDatasetPreparer:
         :param batch_size: Batch size for DataLoader.
         """
         self.dataset = load_dataset(dataset_name)
+        self.train_dataset = train_dataset
         self.batch_size = batch_size
         # word embeddings
         if manual_embeddings:
@@ -274,7 +279,10 @@ class CustomDatasetPreparer:
     def load_dataset(self,ignore_unknown=False):
         # load dataset from huggingface first
         dataset = load_dataset("rotten_tomatoes")
-        train_dataset = dataset["train"]
+        if self.train_dataset:
+            train_dataset = self.train_dataset
+        else:
+            train_dataset = dataset["train"]
         validation_dataset = dataset["validation"]
         test_dataset = dataset["test"]
 
