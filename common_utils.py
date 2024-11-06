@@ -246,13 +246,21 @@ class EmbeddingsDataset(Dataset):
         """
         tokens = nltk.word_tokenize(x)
         # word tokens to index, skip if token is not in the word embeddings
-        if self.ignore_unknown:
+        if self.ignore_unknown and not self.allow_unknown:
             tokens = [
                 self.word_embeddings.get_idx(token)
                 for token in tokens
-                if self.word_embeddings.get_idx(token) is not self.word_embeddings.unk_idx
+                if self.word_embeddings.get_idx(token) is not None
+            ]
+        elif self.ignore_unknown and self.allow_unknown:
+            tokens = [
+                self.word_embeddings.get_idx(token)
+                for token in tokens
+                if (self.word_embeddings.get_idx(token) is not None \
+                    or self.word_embeddings.get_idx(token) is not self.word_embeddings.unk_idx)
             ]
         else:
+            # allow unknown and do not ignore unknown
             tokens = [self.word_embeddings.get_idx(token) for token in tokens]
         return tokens
 
