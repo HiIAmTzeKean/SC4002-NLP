@@ -186,3 +186,4 @@ report/*.gz
 report/*.pdf
 fasttext_model.model
 fasttext_model.**
+optimal_model_RNN.**

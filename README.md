@@ -66,21 +66,21 @@ model.
 This notebook focuses on implementation of Recurrent Neural Network as well as the implementation
 of a variety of RNN using multiple techniques to increase the accuracy score. 
 
-### 4. Enhancement (Part 3.1 and Part 3.2) (part_3_a_b.ipynb)
+### 4. Enhancement (Part 3(a) and Part 3(b)) (part_3_a_b.ipynb)
 Implementing various enhancement, focused on updating the word embeddings during the training process
 as well as applying the solution to mitigate OOV words. 
 
-### 5. Enhancement (BiLSTM Naive Model) (part_3_biLSTM_naive.ipynb)
+### 5. Enhancement (BiLSTM Naive Model) (part_3_c_biLSTM_naive.ipynb)
 Implementation of BiLSTM Naive Model and analysing its hyperparameter. 
 
-### 6. Enhancement (BiGRU Model with Attention) (part_3_BiGRU.ipynb)
+### 6. Enhancement (BiGRU Model with Attention) (part_3_c_BiGRU.ipynb)
 Implementation of BiGRU complex model with attention and analysing its hyperparameter. Extra testing by directly replacing BiGRU layer with BiLSTM to see which is better.
 
-### 7. Enhancement (CNN) (part_3_CNN.ipynb)
+### 7. Enhancement (CNN) (part_3_d_CNN.ipynb)
 Implementation of CNN, Dual Channel CNN as well as exploring some parts of the
 dataset to figure out how we can better optimize.
 
-### 8. Enhancement (Part 3.5 and Part 3.6) (part_3_f.ipynb)
+### 8. Enhancement (Part 3(e) and Part 3(f)) (part_3_e_f.ipynb)
 Here we explore variations of the RNN model with attention and concatenation of
 different pooling methods to explore the best model. We also attempted 
 self-attention models and negation handling to improve the model.
