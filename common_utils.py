@@ -209,7 +209,7 @@ class EmbeddingsDataset(Dataset):
         X,
         y,
         word_embeddings: EmbeddingMatrix,
-        sort=False,
+        sort=True,
         ignore_unknown=True,
         allow_unknown=False,
     ):
@@ -314,20 +314,30 @@ class CustomDatasetPreparer:
         )
         return train_dataset_ed, validation_dataset_ed, test_dataset_ed
 
-    def get_dataloaders(self, ignore_unknown=False):
+    def get_dataloaders(self, ignore_unknown=False, shuffle=True):
         train_dataset_ed, validation_dataset_ed, test_dataset_ed = (
             self.load_dataset(ignore_unknown)
         )
 
-        def pad_collate(batch, pad_value):
+        def pad_collate(batch, pad_value, shuffle=True):
             (xx, yy) = zip(*batch)
+            # convert xx to a tensor
+            xx = [torch.tensor(x, dtype=torch.int64) for x in xx]
+            if shuffle:
+                # Zip inputs and labels back together
+                data = list(zip(xx, yy))
+                
+                # Shuffle the data within the batch
+                random.shuffle(data)
+            
+                # Unzip the shuffled data
+                xx, yy = zip(*data)
+
             # get the lengths of each sequence
             lengths = [len(x) for x in xx]
             # convert lengths to a tensor
             lengths = torch.tensor(lengths, dtype=torch.long)
-
-            # convert xx to a tensor
-            xx = [torch.tensor(x, dtype=torch.int64) for x in xx]
+            
             xx_pad = pad_sequence(xx, batch_first=True, padding_value=pad_value)
 
             labels = torch.tensor(yy, dtype=torch.long)
@@ -340,19 +350,19 @@ class CustomDatasetPreparer:
         train_dataloader = DataLoader(
             train_dataset_ed,
             batch_size=self.batch_size,
-            shuffle=True,
-            collate_fn=lambda x: pad_collate(x, pad_value),
+            shuffle=shuffle,
+            collate_fn=lambda x: pad_collate(x, pad_value, shuffle),
         )
         validation_dataloader = DataLoader(
             validation_dataset_ed,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=shuffle,
             collate_fn=lambda x: pad_collate(x, pad_value),
         )
         test_dataloader = DataLoader(
             test_dataset_ed,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=shuffle,
             collate_fn=lambda x: pad_collate(x, pad_value),
         )
 
