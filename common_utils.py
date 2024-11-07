@@ -266,7 +266,14 @@ class EmbeddingsDataset(Dataset):
 
 
 class CustomDatasetPreparer:
-    def __init__(self, dataset_name, batch_size=BATCH_SIZE, manual_embeddings:EmbeddingMatrix=None, train_dataset:Dataset=None):
+    def __init__(
+        self,
+        dataset_name,
+        batch_size=BATCH_SIZE,
+        manual_embeddings: EmbeddingMatrix = None,
+        train_dataset: Dataset = None,
+        ignore_unknown=False,
+    ):
         """
         Initialize the dataset preparer.
 
@@ -276,6 +283,7 @@ class CustomDatasetPreparer:
         self.dataset = load_dataset(dataset_name)
         self.train_dataset = train_dataset
         self.batch_size = batch_size
+        self.ignore_unknown = ignore_unknown
         # word embeddings
         if manual_embeddings:
             self.word_embeddings = manual_embeddings
@@ -283,8 +291,10 @@ class CustomDatasetPreparer:
             self.word_embeddings = EmbeddingMatrix.load()
             self.word_embeddings.add_padding()
             self.word_embeddings.add_unk_token()
+            if ignore_unknown:
+                self.word_embeddings.handle_unknown = False
 
-    def load_dataset(self,ignore_unknown=False):
+    def load_dataset(self, ignore_unknown=False):
         # load dataset from huggingface first
         dataset = load_dataset("rotten_tomatoes")
         if self.train_dataset:
@@ -315,6 +325,8 @@ class CustomDatasetPreparer:
         return train_dataset_ed, validation_dataset_ed, test_dataset_ed
 
     def get_dataloaders(self, ignore_unknown=False, shuffle=True):
+        if self.ignore_unknown != ignore_unknown:
+            print("NOTE: ignore_unknown conflict")
         train_dataset_ed, validation_dataset_ed, test_dataset_ed = (
             self.load_dataset(ignore_unknown)
         )
@@ -326,10 +338,10 @@ class CustomDatasetPreparer:
             if shuffle:
                 # Zip inputs and labels back together
                 data = list(zip(xx, yy))
-                
+
                 # Shuffle the data within the batch
                 random.shuffle(data)
-            
+
                 # Unzip the shuffled data
                 xx, yy = zip(*data)
 
@@ -337,7 +349,7 @@ class CustomDatasetPreparer:
             lengths = [len(x) for x in xx]
             # convert lengths to a tensor
             lengths = torch.tensor(lengths, dtype=torch.long)
-            
+
             xx_pad = pad_sequence(xx, batch_first=True, padding_value=pad_value)
 
             labels = torch.tensor(yy, dtype=torch.long)
@@ -386,7 +398,7 @@ def plot_loss_accuracy(train_loss_, train_acc_, val_loss_, val_acc_):
     plt.grid()
 
     plt.show()
-    
+
 # function to predict accuracy
 def acc(pred,label):
     pred = torch.round(pred.squeeze())
