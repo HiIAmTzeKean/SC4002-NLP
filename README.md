@@ -98,7 +98,7 @@ more information.
 |---|---|---|---|
 | **Part 2: RNN** |  |  |  |
 | RNN (Version 1) | Max Pooling on Hidden Layer | - | 0.761 |
-| Optimal RNN | Max pooling, Initial LR: 0.0001, Batch: 32, Adam, Epochs: 33, Dropout: 0.3, Hidden: 128, Layers: 2 | - | 0.807 |
+| Optimal RNN | Max pooling, Initial LR: 0.0001, Batch: 32, Adam, Epochs: 33, Dropout: 0.3, Hidden: 128, Layers: 2 | - | 0.773 |
 | **Part 3: RNN** |  |  |  |
 | RNN (No Unknown Handling, Unfrozen Embeddings) | Same as Optimal RNN params | 0.509 | 0.775 |
 | RNN (Unknown Handling) | Same as Optimal RNN params | 0.595 | 0.783 |
