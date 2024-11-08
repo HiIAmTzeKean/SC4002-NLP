@@ -90,15 +90,15 @@ self-attention models and negation handling to improve the model.
 We have collated and summarized the results of the models that we have implemented
 in the table below. The table will contain the model name, the parameters used
 to train the model, the test loss and the test accuracy of the model. Note that
-we omitted the training loss for Part 2 as the question wanted the validation
+we omitted most of the training loss for Part 2 as the question wanted the validation
 accuracy and the test accuracy instead. You can refer to the notebook for
 more information.
 
 | Model | Parameters | Test Loss | Test Accuracy |
 |---|---|---|---|
 | **Part 2: RNN** |  |  |  |
-| RNN (Version 1) | Max Pooling on Hidden Layer | - | 0.761 |
-| Optimal RNN | Max pooling, Initial LR: 0.0001, Batch: 32, Adam, Epochs: 33, Dropout: 0.3, Hidden: 128, Layers: 2 | - | 0.773 |
+| RNN (Version 1) | Max Pooling on Hidden Layer | 0.547 | 0.745 |
+| Optimal RNN | Max pooling, Initial LR: 0.0001, Batch: 32, Adam, Epochs: 33, Dropout: 0.3, Hidden: 128, Layers: 2 | 0.490 | 0.773 |
 | **Part 3: RNN** |  |  |  |
 | RNN (No Unknown Handling, Unfrozen Embeddings) | Same as Optimal RNN params | 0.509 | 0.775 |
 | RNN (Unknown Handling) | Same as Optimal RNN params | 0.595 | 0.783 |
